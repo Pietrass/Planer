@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:padding="5dp"
+    android:layout_height="match_parent">
+
+    <CalendarView
+        android:id="@+id/calendar_view"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content">
+
+    </CalendarView>
+
+    <LinearLayout
+        android:id="@+id/time_linear_layout"
+        android:layout_below="@+id/calendar_view"
+        android:layout_centerHorizontal="true"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content">
+
+        <AutoCompleteTextView
+            android:id="@+id/hours_edit"
+            android:layout_centerHorizontal="true"
+            android:layout_below="@+id/data"
+            android:hint="00"
+            android:inputType="number"
+            android:maxLength="2"
+            android:textSize="35dp"
+            android:layout_width="50dp"
+            android:layout_height="wrap_content" />
+
+        <TextView
+            android:textSize="35dp"
+            android:text=":"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+
+        <AutoCompleteTextView
+            android:id="@+id/minutes_edit"
+            android:layout_below="@+id/data"
+            android:layout_toRightOf="@+id/hours"
+            android:maxLength="2"
+            android:inputType="number"
+            android:hint="00"
+            android:textSize="35dp"
+            android:layout_width="50dp"
+            android:layout_height="wrap_content" />
+    </LinearLayout>
+
+    <EditText
+        android:id="@+id/event_edit"
+        android:layout_below="@+id/time_linear_layout"
+        android:layout_margin="5dp"
+        android:hint="Co planujesz na ten dzień"
+        android:textSize="15dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+    <Button
+        android:id="@+id/add_edit"
+        android:text="Zatwierdź"
+        android:layout_below="@+id/event_edit"
+        android:background="@color/colorPrimary"
+        android:layout_margin="5dp"
+        android:layout_centerHorizontal="true"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
+
+</RelativeLayout>
