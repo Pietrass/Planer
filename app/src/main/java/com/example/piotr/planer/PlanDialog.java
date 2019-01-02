@@ -7,6 +7,7 @@ import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.hardware.input.InputManager;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -19,6 +20,7 @@ import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.EditText;
@@ -64,7 +66,7 @@ public class PlanDialog extends DialogFragment {
     }
 
     @Override
-    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+    public void onViewCreated(@NonNull final View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
         data = view.findViewById(R.id.data);
@@ -82,6 +84,10 @@ public class PlanDialog extends DialogFragment {
         minute = 0;
 
         data.setText("" + day + "." + month + "." + year);
+
+        hours.requestFocus();
+        final InputMethodManager inputManager = (InputMethodManager) mContext.getSystemService(Context.INPUT_METHOD_SERVICE);
+        inputManager.toggleSoftInput(InputMethodManager.SHOW_FORCED, 0);
 
         add.setEnabled(false);
         hours.addTextChangedListener(new TextWatcher() {
@@ -172,6 +178,8 @@ public class PlanDialog extends DialogFragment {
                         planList.add(plan);
                         Collections.sort(planList);
                         saveSharPrefs(getContext());
+                        InputMethodManager inputMethodManager = (InputMethodManager) mContext.getSystemService(Context.INPUT_METHOD_SERVICE);
+                        inputManager.hideSoftInputFromWindow(view.getWindowToken(), 0);
                         getDialog().dismiss();
 
 
