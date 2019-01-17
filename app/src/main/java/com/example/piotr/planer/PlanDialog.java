@@ -23,7 +23,10 @@ import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.EditText;
+import android.widget.RadioButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -32,6 +35,7 @@ import java.util.Collections;
 import java.util.List;
 
 import static android.content.Context.ALARM_SERVICE;
+import static com.example.piotr.planer.EventListFragment.myAdapter;
 import static com.example.piotr.planer.EventListFragment.textViewEmpty;
 import static com.example.piotr.planer.MainActivity.mContext;
 import static com.example.piotr.planer.MainActivity.planList;
@@ -40,9 +44,10 @@ import static com.example.piotr.planer.MainActivity.saveSharPrefs;
 
 public class PlanDialog extends DialogFragment {
 
+    CheckBox repeatDay, repeatDays;
     TextView data;
     AutoCompleteTextView hours, minutes;
-    EditText event;
+    EditText event, repeatDaysEdit;
     int hour, minute;
     boolean isHoursValid, isMinutesValid;
     Button add;
@@ -74,7 +79,32 @@ public class PlanDialog extends DialogFragment {
         minutes = view.findViewById(R.id.minutes);
         event = view.findViewById(R.id.event);
         add = view.findViewById(R.id.add);
+        repeatDay = view.findViewById(R.id.repeat_day);
+        repeatDays = view.findViewById(R.id.repeat_days);
+        repeatDaysEdit = view.findViewById(R.id.edit_repeat_days);
 
+        final InputMethodManager inputManager = (InputMethodManager) mContext.getSystemService(Context.INPUT_METHOD_SERVICE);
+        inputManager.showSoftInput(repeatDaysEdit, InputMethodManager.SHOW_FORCED);
+
+        repeatDay.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                inputManager.hideSoftInputFromWindow(view.getWindowToken(), 0);
+                if (repeatDays.isChecked()) {
+                    repeatDays.setChecked(false);
+                }
+            }
+        });
+
+        repeatDays.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                repeatDaysEdit.requestFocus();
+                if (repeatDay.isChecked()) {
+                    repeatDay.setChecked(false);
+                }
+            }
+        });
         final int day, month, year;
         day = getArguments().getInt("mDay");
         month = getArguments().getInt("month") + 1;
@@ -86,7 +116,6 @@ public class PlanDialog extends DialogFragment {
         data.setText("" + day + "." + month + "." + year);
 
         hours.requestFocus();
-        final InputMethodManager inputManager = (InputMethodManager) mContext.getSystemService(Context.INPUT_METHOD_SERVICE);
         inputManager.toggleSoftInput(InputMethodManager.SHOW_FORCED, 0);
 
         add.setEnabled(false);
@@ -170,18 +199,29 @@ public class PlanDialog extends DialogFragment {
                     if (eventDate.getTimeInMillis() < System.currentTimeMillis()) {
                         Toast.makeText(getContext(), "Data nieaktualna", Toast.LENGTH_SHORT).show();
                     } else {
-                        String eventName = event.getText().toString();
-                        ListItemModel plan = new ListItemModel(eventName, eventDate);
-                        textViewEmpty.setVisibility(View.GONE);
-                        Toast.makeText(getContext(), "Zaplanowane", Toast.LENGTH_SHORT).show();
-                        setAlarm(eventDate, eventName);
-                        planList.add(plan);
-                        Collections.sort(planList);
-                        saveSharPrefs(getContext());
-                        InputMethodManager inputMethodManager = (InputMethodManager) mContext.getSystemService(Context.INPUT_METHOD_SERVICE);
-                        inputManager.hideSoftInputFromWindow(view.getWindowToken(), 0);
-                        getDialog().dismiss();
-
+                        if (repeatDays.isChecked() && (repeatDaysEdit.length() == 0 || Integer.valueOf(repeatDaysEdit.getText().toString()) == 0)) {
+                            Toast.makeText(getContext(), "Podaj liczbę dni", Toast.LENGTH_SHORT).show();
+                        } else {
+                            String eventName = event.getText().toString();
+                            int interval;
+                            if (repeatDay.isChecked()) {
+                                interval = 1;
+                            } else if (repeatDays.isChecked()) {
+                                interval = Integer.valueOf(repeatDaysEdit.getText().toString());
+                            } else {
+                                interval = 0;
+                            }
+                            ListItemModel plan = new ListItemModel(eventName, eventDate, interval);
+                            textViewEmpty.setVisibility(View.GONE);
+                            Toast.makeText(getContext(), "Zaplanowane", Toast.LENGTH_SHORT).show();
+                            setAlarm(eventDate, eventName);
+                            planList.add(plan);
+                            Collections.sort(planList);
+                            myAdapter.notifyDataSetChanged();
+                            saveSharPrefs(getContext());
+                            inputManager.hideSoftInputFromWindow(view.getWindowToken(), 0);
+                            getDialog().dismiss();
+                        }
 
                     }
                 }
@@ -199,7 +239,15 @@ public class PlanDialog extends DialogFragment {
 
         PendingIntent pendingIntent = PendingIntent.getBroadcast(mContext, id, intent, PendingIntent.FLAG_UPDATE_CURRENT);
         AlarmManager alarmManager = (AlarmManager) getActivity().getSystemService(ALARM_SERVICE);
-        alarmManager.set(AlarmManager.RTC_WAKEUP, eventDate.getTimeInMillis(), pendingIntent);
+        if (repeatDay.isChecked()) {
+            alarmManager.setRepeating(AlarmManager.RTC_WAKEUP, eventDate.getTimeInMillis(),AlarmManager.INTERVAL_DAY, pendingIntent);
+        } else if (repeatDays.isChecked()) {
+            int interval = Integer.valueOf(repeatDaysEdit.getText().toString());
+            alarmManager.setRepeating(AlarmManager.RTC_WAKEUP, eventDate.getTimeInMillis(),AlarmManager.INTERVAL_DAY * interval, pendingIntent);
+        } else {
+            alarmManager.set(AlarmManager.RTC_WAKEUP, eventDate.getTimeInMillis(), pendingIntent);
+        }
+
     }
 
 
@@ -210,4 +258,6 @@ public class PlanDialog extends DialogFragment {
             add.setEnabled(false);
         }
     }
+
+
 }

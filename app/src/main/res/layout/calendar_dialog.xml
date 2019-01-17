@@ -17,7 +17,6 @@
     <LinearLayout
         android:id="@+id/time_linear_layout"
         android:layout_below="@+id/data"
-        android:padding="10dp"
         android:layout_centerHorizontal="true"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content">
@@ -54,16 +53,50 @@
     <EditText
         android:id="@+id/event"
         android:layout_below="@+id/time_linear_layout"
-        android:layout_margin="10dp"
+        android:layout_margin="5dp"
         android:hint="Co planujesz na ten dzień"
         android:textSize="15dp"
         android:layout_width="match_parent"
         android:layout_height="wrap_content" />
 
+    <CheckBox
+        android:id="@+id/repeat_day"
+        android:text="Powtarzaj codziennie "
+        android:layout_below="@+id/event"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
+
+    <LinearLayout
+        android:id="@+id/linear_repeat"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/repeat_day">
+
+        <CheckBox
+            android:id="@+id/repeat_days"
+            android:text="Powtarzaj co "
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+
+        <EditText
+            android:id="@+id/edit_repeat_days"
+            android:layout_width="35dp"
+            android:inputType="number"
+            android:textAlignment="center"
+            android:layout_height="wrap_content" />
+
+        <TextView
+            android:text=" dni"
+            android:textColor="@android:color/black"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+
+    </LinearLayout>
+
     <Button
         android:id="@+id/add"
         android:text="Dodaj"
-        android:layout_below="@+id/event"
+        android:layout_below="@+id/linear_repeat"
         android:background="@color/colorPrimary"
         android:layout_margin="10dp"
         android:layout_centerHorizontal="true"

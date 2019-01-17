@@ -14,6 +14,7 @@ import android.view.ViewGroup;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.CalendarView;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.Toast;
 
@@ -31,16 +32,16 @@ public class PlanDialogEdit extends DialogFragment {
 
     CalendarView calendarView;
     Calendar mEventDate;
-    EditText mEvent;
+    EditText mEvent, mRepeatDays;
     AutoCompleteTextView hours, minutes;
     Button add;
-    int mDay, mMonth, mYear, mHour, mMinute;
+    int mDay, mMonth, mYear, mHour, mMinute, mInterval;
     String eventName;
-    PendingIntent pendingIntent;
+    CheckBox repeatCheckbox;
 
     public PlanDialogEdit() {}
 
-    public static PlanDialogEdit newInstance(Calendar date, int ind, int day, int month, int year, int hour, int minute, String event) {
+    public static PlanDialogEdit newInstance(Calendar date, int ind, int day, int month, int year, int hour, int minute, String event, int interval) {
         PlanDialogEdit planDialogEdit = new PlanDialogEdit();
         Bundle args = new Bundle();
         args.putInt("ind", ind);
@@ -50,6 +51,7 @@ public class PlanDialogEdit extends DialogFragment {
         args.putInt("hour", hour);
         args.putInt("minute", minute);
         args.putString("event", event);
+        args.putInt("interval", interval);
         planDialogEdit.setDate(date);
         planDialogEdit.setArguments(args);
         return planDialogEdit;
@@ -76,6 +78,8 @@ public class PlanDialogEdit extends DialogFragment {
         minutes = view.findViewById(R.id.minutes_edit);
         mEvent = view.findViewById(R.id.event_edit);
         add = view.findViewById(R.id.add_edit);
+        repeatCheckbox = view.findViewById(R.id.repeat_days);
+        mRepeatDays = view.findViewById(R.id.edit_repeat_days);
 
         mDay = getArguments().getInt("day");
         mMonth = getArguments().getInt("month");
@@ -83,6 +87,7 @@ public class PlanDialogEdit extends DialogFragment {
         mHour = getArguments().getInt("hour");
         mMinute = getArguments().getInt("minute");
         eventName = getArguments().getString("event");
+        mInterval = getArguments().getInt("interval");
 
         hours.setText(String.format("%02d", mHour));
         minutes.setText(String.format("%02d", mMinute));
@@ -101,8 +106,10 @@ public class PlanDialogEdit extends DialogFragment {
             }
         });
 
-
-
+        if (mInterval > 0) {
+            repeatCheckbox.setChecked(true);
+            mRepeatDays.setText(String.valueOf(mInterval));
+        }
 
         add.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -135,7 +142,10 @@ public class PlanDialogEdit extends DialogFragment {
                         planList.remove(ind);
 
                         eventName = mEvent.getText().toString();
-                        ListItemModel event = new ListItemModel(eventName, eventDate);
+                        if (repeatCheckbox.isChecked()) {
+                            mInterval = Integer.valueOf(mRepeatDays.getText().toString());
+                        }
+                        ListItemModel event = new ListItemModel(eventName, eventDate, mInterval);
                         Toast.makeText(getContext(), "Zmienione", Toast.LENGTH_SHORT).show();
                         setAlarm(eventDate, eventName);
                         planList.add(event);
@@ -159,8 +169,13 @@ public class PlanDialogEdit extends DialogFragment {
 
         PendingIntent pendingIntent = PendingIntent.getBroadcast(mContext, id, intent, PendingIntent.FLAG_UPDATE_CURRENT);
         AlarmManager alarmManager = (AlarmManager) activity.getSystemService(ALARM_SERVICE);
-        alarmManager.set(AlarmManager.RTC_WAKEUP, eventDate.getTimeInMillis(), pendingIntent);
-    }
+        if (mInterval > 0) {
+            alarmManager.setRepeating(AlarmManager.RTC_WAKEUP, eventDate.getTimeInMillis(),AlarmManager.INTERVAL_DAY * mInterval, pendingIntent);
+        } else {
+            alarmManager.set(AlarmManager.RTC_WAKEUP, eventDate.getTimeInMillis(), pendingIntent);
+        }
+        }
+
 
     private void cancelAlarm(Calendar eventDate, String eventName) {
         String idString = "" + eventDate.get(Calendar.DATE) + eventDate.get(Calendar.MONTH) + eventDate.get(Calendar.HOUR_OF_DAY) + eventDate.get(Calendar.MINUTE);

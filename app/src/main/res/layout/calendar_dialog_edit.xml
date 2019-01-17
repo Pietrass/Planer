@@ -51,16 +51,42 @@
     <EditText
         android:id="@+id/event_edit"
         android:layout_below="@+id/time_linear_layout"
-        android:layout_margin="5dp"
         android:hint="Co planujesz na ten dzień"
         android:textSize="15dp"
         android:layout_width="match_parent"
         android:layout_height="wrap_content" />
 
+    <LinearLayout
+        android:id="@+id/linear_repeat"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/event_edit">
+
+        <CheckBox
+            android:id="@+id/repeat_days"
+            android:text="Powtarzaj co "
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+
+        <EditText
+            android:id="@+id/edit_repeat_days"
+            android:layout_width="35dp"
+            android:inputType="number"
+            android:textAlignment="center"
+            android:layout_height="wrap_content" />
+
+        <TextView
+            android:text=" dni"
+            android:textColor="@android:color/black"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+
+    </LinearLayout>
+
     <Button
         android:id="@+id/add_edit"
         android:text="Zatwierdź"
-        android:layout_below="@+id/event_edit"
+        android:layout_below="@+id/linear_repeat"
         android:background="@color/colorPrimary"
         android:layout_margin="5dp"
         android:layout_centerHorizontal="true"

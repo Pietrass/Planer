@@ -4,11 +4,15 @@ import android.app.Activity;
 import android.app.AlarmManager;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
+import android.app.PendingIntent;
+import android.app.TimePickerDialog;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Build;
 import android.preference.PreferenceManager;
 import android.support.design.widget.TabLayout;
+import android.support.v4.app.DialogFragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.view.ViewPager;
@@ -17,6 +21,9 @@ import android.os.Bundle;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.View;
+import android.widget.TimePicker;
+import android.widget.Toast;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -27,6 +34,7 @@ import java.util.Collections;
 
 import static com.example.piotr.planer.BroadcastEvent.CHANNEL_ID;
 import static com.example.piotr.planer.EventListFragment.myAdapter;
+import static com.example.piotr.planer.EventListFragment.textViewEmpty;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -63,6 +71,36 @@ public class MainActivity extends AppCompatActivity {
             planList = new ArrayList<>();
         }
 
+        int requestCode = getIntent().getIntExtra("requestCode", -1);
+        if (requestCode == 0) {
+            final Calendar calendar = Calendar.getInstance();
+            final int hours = calendar.get(Calendar.HOUR_OF_DAY);
+            final int minutes = calendar.get(Calendar.MINUTE);
+
+            this.getApplicationContext().sendBroadcast(new Intent(Intent.ACTION_CLOSE_SYSTEM_DIALOGS));
+
+            TimePickerDialog timePickerDialog = new TimePickerDialog(MainActivity.this, new TimePickerDialog.OnTimeSetListener() {
+                @Override
+                public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
+                    Toast.makeText(getApplicationContext(), "Ustawiono przypomnienie", Toast.LENGTH_SHORT).show();
+                    String eventName = getIntent().getStringExtra("eventName");
+                    Calendar calendar = Calendar.getInstance();
+                    calendar.set(Calendar.HOUR_OF_DAY, hourOfDay);
+                    calendar.set(Calendar.MINUTE, minute);
+                    ListItemModel plan = new ListItemModel(eventName, calendar, 0);
+                    planList.add(plan);
+                    myAdapter.notifyDataSetChanged();
+                    textViewEmpty.setVisibility(View.GONE);
+                    setAlarm(calendar, eventName);
+                    saveSharPrefs(getApplicationContext());
+
+                    Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+                    startActivity(intent);
+                }
+            }, hours, minutes, true);
+
+            timePickerDialog.show();
+        }
         Collections.sort(planList);
 
         Toolbar toolbar = findViewById(R.id.toolbar);
@@ -117,8 +155,17 @@ public class MainActivity extends AppCompatActivity {
         saveSharPrefs(this);
     }
 
-    public void showNotification(Calendar eventDate) {
-        mBuilder = new NotificationCompat.Builder(this, CHANNEL_ID);
-        
+
+    private void setAlarm(Calendar eventDate, String eventName) {
+        String idString = "" + eventDate.get(Calendar.DATE) + eventDate.get(Calendar.MONTH) + eventDate.get(Calendar.HOUR_OF_DAY) + eventDate.get(Calendar.MINUTE);
+        int id = Integer.parseInt(idString);
+
+        Intent intent = new Intent(getApplicationContext(), BroadcastEvent.class);
+        intent.putExtra("eventName", eventName);
+        intent.putExtra("id", id);
+
+        PendingIntent pendingIntent = PendingIntent.getBroadcast(mContext, id, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+        AlarmManager alarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
+        alarmManager.set(AlarmManager.RTC_WAKEUP, eventDate.getTimeInMillis(), pendingIntent);
     }
 }

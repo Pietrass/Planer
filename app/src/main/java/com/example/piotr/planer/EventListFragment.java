@@ -14,6 +14,7 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
 
@@ -36,9 +37,9 @@ public class EventListFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
         textViewEmpty = (TextView) view.findViewById(R.id.text_emptylist);
         RecyclerView recyclerView = view.findViewById(R.id.list_fragment_recycler_view);
+        removeOutDatedPlans();
         myAdapter = new MyAdapter(getActivity(), planList);
         recyclerView.setAdapter(myAdapter);
-        removeOutDatedPlans();
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         DividerItemDecoration itemDecoration = new DividerItemDecoration(getContext(), DividerItemDecoration.VERTICAL);
         recyclerView.addItemDecoration(itemDecoration);
@@ -53,7 +54,12 @@ public class EventListFragment extends Fragment {
         int planListSize = planList.size();
         for (int i = (planListSize - 1); i >= 0; i--) {
             if (planList.get(i).date.getTimeInMillis() < System.currentTimeMillis()) {
-                planList.remove(i);
+                if (planList.get(i).repeatInterval > 0) {
+                    planList.get(i).date.add(Calendar.DATE, planList.get(i).repeatInterval);
+                    planList.get(i).formatDate();
+                } else {
+                    planList.remove(i);
+                }
             }
         }
     }

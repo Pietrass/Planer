@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">Planer</string>
+    <string name="ACTION_REMIND">remind</string>
 </resources>

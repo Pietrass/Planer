@@ -16,6 +16,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.PopupMenu;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
@@ -41,6 +42,8 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.MyViewHolder> {
     public class MyViewHolder extends RecyclerView.ViewHolder {
         public TextView eventTextView;
         public TextView dateTextView;
+        public TextView intervalTextView;
+        public ImageView intervalImage;
         public Button button;
 
         public MyViewHolder(View itemView) {
@@ -48,6 +51,8 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.MyViewHolder> {
 
             eventTextView = itemView.findViewById(R.id.text_event);
             dateTextView = itemView.findViewById(R.id.text_event_date);
+            intervalTextView = itemView.findViewById(R.id.interval_text_view);
+            intervalImage = itemView.findViewById(R.id.interval_image_view);
             button = itemView.findViewById(R.id.event_menu);
         }
 
@@ -80,6 +85,16 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.MyViewHolder> {
         TextView eventDateTest = myViewHolder.dateTextView;
         eventDateTest.setText(listItemModel.formattedEventDate);
 
+        ImageView intervalImageView = myViewHolder.intervalImage;
+
+        TextView eventInterval = myViewHolder.intervalTextView;
+        if (listItemModel.repeatInterval > 0) {
+            eventInterval.setText(String.valueOf(listItemModel.repeatInterval));
+        } else {
+            eventInterval.setVisibility(View.GONE);
+            intervalImageView.setVisibility(View.GONE);
+        }
+
         Button button = myViewHolder.button;
         button.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -103,7 +118,7 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.MyViewHolder> {
                         Calendar date = listItemModel.date;
                         String eventName = listItemModel.eventName;
                         FragmentManager fragmentManager = ((AppCompatActivity) mContext).getSupportFragmentManager();
-                        PlanDialogEdit planDialog = PlanDialogEdit.newInstance(date, ind, date.get(Calendar.DATE), date.get(Calendar.MONTH), date.get(Calendar.YEAR), date.get(Calendar.HOUR_OF_DAY), date.get(Calendar.MINUTE), eventName);
+                        PlanDialogEdit planDialog = PlanDialogEdit.newInstance(date, ind, date.get(Calendar.DATE), date.get(Calendar.MONTH), date.get(Calendar.YEAR), date.get(Calendar.HOUR_OF_DAY), date.get(Calendar.MINUTE), eventName, listItemModel.repeatInterval);
                         planDialog.show(fragmentManager, "calendar_dialog_edit");
                         break;
                     case R.id.remove:
@@ -128,19 +143,6 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.MyViewHolder> {
     @Override
     public int getItemCount() {
         return events.size();
-    }
-
-    private void setAlarm(Calendar eventDate, String eventName) {
-        String idString = "" + eventDate.get(Calendar.DATE) + eventDate.get(Calendar.MONTH) + eventDate.get(Calendar.HOUR_OF_DAY) + eventDate.get(Calendar.MINUTE);
-        int id = Integer.parseInt(idString);
-
-        Intent intent = new Intent(mContext, BroadcastEvent.class);
-        intent.putExtra("eventName", eventName);
-        intent.putExtra("id", id);
-
-        PendingIntent pendingIntent = PendingIntent.getBroadcast(mContext, id, intent, PendingIntent.FLAG_UPDATE_CURRENT);
-        AlarmManager alarmManager = (AlarmManager) activity.getSystemService(ALARM_SERVICE);
-        alarmManager.set(AlarmManager.RTC_WAKEUP, eventDate.getTimeInMillis(), pendingIntent);
     }
 
     private void cancelAlarm(Calendar eventDate, String eventName) {
